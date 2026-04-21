@@ -20,6 +20,9 @@ void Motor::Init(int dir_pin, int step_pin, Sensor sensor_low, Sensor sensor_hig
     sensor_L = sensor_low;
     sensor_H = sensor_high;
 
+    sensor_L.init();
+    sensor_H.init();
+    
     gpio_init(d_pin);
     gpio_init(s_pin);
 

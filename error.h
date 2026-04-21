@@ -59,3 +59,14 @@ do { \
     gpio_put(21, 1); \
 } while(0)
     
+#define Init_status_leds()\
+do{\
+    gpio_init(19);\
+    gpio_init(20);\
+    gpio_init(21);\
+    gpio_init(22);\
+    gpio_set_dir(19, GPIO_OUT);\
+    gpio_set_dir(20, GPIO_OUT);\
+    gpio_set_dir(21, GPIO_OUT);\
+    gpio_set_dir(22, GPIO_OUT);\
+}while(0)

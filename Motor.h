@@ -1,6 +1,7 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include "pico/stdlib.h"
 #include "Sensor.h"
 
 class Motor {

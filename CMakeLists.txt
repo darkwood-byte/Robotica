@@ -35,13 +35,13 @@ pico_sdk_init()
 
 # Add executable. Build output filename now matches the project target name
 
-add_executable(Robotica Main.cpp Sensor.cpp Motor.cpp )
+add_executable(Robotica Main.cpp Sensor.cpp Motor.cpp Robot.cpp)
 
 pico_set_program_name(Robotica "Robotica")
 pico_set_program_version(Robotica "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Robotica 0)
+pico_enable_stdio_uart(Robotica 1)
 pico_enable_stdio_usb(Robotica 0)
 
 # Add the standard library to the build
