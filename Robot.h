@@ -25,13 +25,14 @@
 
 class Robot {
 public:
-    int Pan = 0;
-    int Tilt = 0;
+    volatile int Pan = 0;
+    volatile int Tilt = 0;
 
     Robot() = default;
     void Init();
-
+    void Wake_up();//aaaaaaaaaaaaaaaaaaaaa
 private:
+    volatile bool robot_awake = false;
     struct repeating_timer timer; // heartbeat timer
     Motor pan_motor;
     Motor tilt_motor;

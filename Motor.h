@@ -4,6 +4,15 @@
 #include "pico/stdlib.h"
 #include "Sensor.h"
 #include "error.h"
+
+#define CALC_FINISHED 0
+#define CALC_RETURNING_TO_BASE 1
+#define CALC_FINETUNING 2
+#define CALC_COUNTING 3
+
+#define CALIBRATE_FINISHED 0
+#define CALIBRATE_HEADING_HOME 1
+#define CALIBRATE_FINETUNING 2
 class Motor {
 public:
     bool Ready;
@@ -17,19 +26,22 @@ private:
     Sensor sensor_L;
     Sensor sensor_H;
 
-    int s_pin;
-    int d_pin;
+    volatile int s_pin;
+    volatile int d_pin;
 
-    int steps;
-    int max;
-    int delta;
+    volatile int steps;
+    volatile int max;
+    volatile int delta;
 
+    volatile int calculating;
+    volatile int calibrating;
+
+    void calculating_func();
     // -------------------- STEP CONTROL --------------------
     bool pulse_active = false;
 
     void step();
   
-
     void step_high();
     void step_low();
 

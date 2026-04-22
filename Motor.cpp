@@ -95,25 +95,75 @@ void Motor::Init(int dir_pin, int step_pin, Sensor sensor_low, Sensor sensor_hig
 
     init_alarm_system();
     register_motor();
-
-    init_calibration();
+    calculating = 1;
+    calibrating = 0;
 }
 
 // -------------------- USE --------------------
 
 void Motor::Use() {
-    check();
+     if (steps > max * CALIBRATION_FACTOR)calibrating = true;
 
     if (delta == Goal) {
         Ready = true;
     } else {
         Ready = false;
-
-        if (delta < Goal) step_high();
-        else step_low();
+        if(calculating == CALC_FINISHED && calibrating == CALIBRATE_FINISHED){
+            if (delta < Goal) {step_high(); delta++;}
+            else {step_low();delta--;}
+            steps++;
+        }
+        else if (calculating =! CALC_FINISHED){
+            calculating_func();
+        }
+        else if(calibrating == CALIBRATE_HEADING_HOME){
+            step_low();
+            if(sensor_L.Check() == 1)calibrating == CALC_FINETUNING;
+        }
+        else if(calibrating == CALIBRATE_FINETUNING){
+            if(sensor_L.Check() == 1){
+                step_high();
+            }
+            else calibrating = CALC_FINISHED;
+        }
     }
 }
 
+void Motor::calculating_func(){
+    //calibreer een kant op
+    if(calculating == CALC_RETURNING_TO_BASE){
+        step_low();
+        if(sensor_L.Check() == 1){
+            calculating == 2;
+        }
+        if(sensor_H.Check() ==1){
+            Sensor t;
+            t = sensor_H;
+            sensor_H = sensor_L;
+            sensor_L = t;
+            calculating = CALC_FINETUNING;
+        }
+    }
+    //verlaat de eikings sensor
+    else  if(calculating == CALC_FINETUNING){
+        if(sensor_L.Check() == 1){
+            step_high();
+        }
+        else if(sensor_L.Check() == 0){
+            calculating = CALC_COUNTING;
+            max = 0;
+        }
+    }
+    else if(calculating == CALC_COUNTING){
+        step_high();
+        max++;
+        if(sensor_H.Check() == 1){
+            calculating == CALC_FINISHED;
+            delta = max;
+        }
+    }
+   
+}
 // -------------------- STEP CONTROL --------------------
 
 void Motor::step_high() {
@@ -165,41 +215,6 @@ void Motor::prepare_for_calibration() {
     else {
         if (max - delta > delta) calibrate_high();
         else calibrate_low();
-    }
-}
-
-// -------------------- CALIBRATION --------------------
-
-void Motor::init_calibration() {
-    Push_incoming();
-
-    while (sensor_L.Check() == OPEN && sensor_H.Check() == OPEN) {
-        step_low();
-    }
-
-    for (int i = 0; i < JITTERBUFFER; i++) step_low();
-
-    if (sensor_L.Check() == OPEN && sensor_H.Check() == OPEN) {
-        init_calibration();
-        return;
-    }
-
-    if (sensor_H.Check() == OPEN && sensor_L.Check() == CLOSED) {
-        // ok
-    }
-    else if (sensor_H.Check() == CLOSED && sensor_L.Check() == OPEN) {
-        Sensor T = sensor_L;
-        sensor_L = sensor_H;
-        sensor_H = T;
-    }
-    else if (sensor_L.Check() != CLOSED && sensor_H.Check() != CLOSED) {
-        Push_error();
-        sleep_ms(2000);
-
-        for (int i = 0; i < RESETBUFFER; i++) step_high();
-
-        init_calibration();
-        return;
     }
 }
 
