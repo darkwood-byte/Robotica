@@ -4,8 +4,8 @@
 #include <cstdint>
 
 #define ERROR -1
-#define CLOSED 0
-#define OPEN 1
+#define OPEN 0
+#define PRESED 1
 
 class Sensor {
 public:

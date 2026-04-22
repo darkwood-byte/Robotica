@@ -79,6 +79,8 @@ void Motor::Init(int dir_pin, int step_pin, Sensor sensor_low, Sensor sensor_hig
     max = 0;
     delta = 0;
 
+    error = false;
+
     sensor_L = sensor_low;
     sensor_H = sensor_high;
 
@@ -95,15 +97,31 @@ void Motor::Init(int dir_pin, int step_pin, Sensor sensor_low, Sensor sensor_hig
 
     init_alarm_system();
     register_motor();
-    calculating = 1;
-    calibrating = 0;
+    //check de sensor conecties
+    Push_error();
+    while(sensor_H.Check() == ERROR || sensor_L.Check() == ERROR)sleep_ms(500);
+    Push_incoming();
+     //check de sensor conecties
+    calculating = CALC_RETURNING_TO_BASE;
+    calibrating = CALIBRATE_FINISHED;
 }
 
 // -------------------- USE --------------------
 
 void Motor::Use() {
+    //sensor error afhandeling
+    if(sensor_H.Check() == ERROR || sensor_L.Check() == ERROR){
+        Push_error();
+        error = true;
+        return;
+    }
+    else if(error == true){
+        error = false;
+        Push_working();
+    }
+    //calibreer als je teveel loopt
      if (steps > max * CALIBRATION_FACTOR)calibrating = true;
-
+    //beweging
     if (delta == Goal) {
         Ready = true;
     } else {
@@ -113,15 +131,17 @@ void Motor::Use() {
             else {step_low();delta--;}
             steps++;
         }
-        else if (calculating =! CALC_FINISHED){
+        //bereken range
+        else if (calculating != CALC_FINISHED){
             calculating_func();
         }
+        //calibratie
         else if(calibrating == CALIBRATE_HEADING_HOME){
             step_low();
-            if(sensor_L.Check() == 1)calibrating == CALC_FINETUNING;
+            if(sensor_L.Check() == PRESED)calibrating = CALC_FINETUNING;
         }
         else if(calibrating == CALIBRATE_FINETUNING){
-            if(sensor_L.Check() == 1){
+            if(sensor_L.Check() == PRESED){
                 step_high();
             }
             else calibrating = CALC_FINISHED;
@@ -133,10 +153,10 @@ void Motor::calculating_func(){
     //calibreer een kant op
     if(calculating == CALC_RETURNING_TO_BASE){
         step_low();
-        if(sensor_L.Check() == 1){
-            calculating == 2;
+        if(sensor_L.Check() == PRESED){
+            calculating ==  CALC_FINETUNING;
         }
-        if(sensor_H.Check() ==1){
+        if(sensor_H.Check() == PRESED){
             Sensor t;
             t = sensor_H;
             sensor_H = sensor_L;
@@ -146,18 +166,19 @@ void Motor::calculating_func(){
     }
     //verlaat de eikings sensor
     else  if(calculating == CALC_FINETUNING){
-        if(sensor_L.Check() == 1){
+        if(sensor_L.Check() == PRESED){
             step_high();
         }
-        else if(sensor_L.Check() == 0){
+        else if(sensor_L.Check() == OPEN){
             calculating = CALC_COUNTING;
             max = 0;
         }
     }
+    //tel de stapjes van de motor om een range te vinden
     else if(calculating == CALC_COUNTING){
         step_high();
         max++;
-        if(sensor_H.Check() == 1){
+        if(sensor_H.Check() == PRESED){
             calculating == CALC_FINISHED;
             delta = max;
         }
@@ -167,12 +188,12 @@ void Motor::calculating_func(){
 // -------------------- STEP CONTROL --------------------
 
 void Motor::step_high() {
-    gpio_put(d_pin, 0);
+    gpio_put(d_pin, false);
     step();
 }
 
 void Motor::step_low() {
-    gpio_put(d_pin, 1);
+    gpio_put(d_pin, true);
     step();
 }
 
@@ -184,46 +205,33 @@ void Motor::step() {
 
     gpio_put(s_pin, 1);
 
-    uint64_t t = time_us_64() + 10;
+    // bereken wanneer de pulse weer laag moet
+    uint64_t t = time_us_64() + STEPERDRIVERPULSELENGHTUS;
 
+    // sla deze tijd op
     for (int i = 0; i < MAX_MOTORS; i++) {
         if (motors[i] == this) {
             fall_time[i] = t;
             break;
         }
     }
+    //slotje
+    uint64_t next = UINT64_MAX;
 
-    hardware_alarm_set_target(0, t);
+    for (int i = 0; i < MAX_MOTORS; i++) {
+        if (fall_time[i] != 0 && fall_time[i] < next) {
+            next = fall_time[i];
+        }
+    }
+
+    if (next != UINT64_MAX) {
+        hardware_alarm_set_target(0, next);
+    }
 }
 
 // -------------------- STEP FALL (ISR LOW) --------------------
 
 void Motor::step_fall() {
-    gpio_put(s_pin, 0);
+    gpio_put(s_pin, false);
     pulse_active = false;
-}
-
-// -------------------- CHECK / CALIBRATION --------------------
-
-void Motor::check() {
-    if (steps > max * CALIBRATION_FACTOR)
-        prepare_for_calibration();
-}
-
-void Motor::prepare_for_calibration() {
-    if (max == 0) init_calibration();
-    else {
-        if (max - delta > delta) calibrate_high();
-        else calibrate_low();
-    }
-}
-
-// -------------------- PLACEHOLDERS --------------------
-
-int Motor::calibrate_low() {
-    return 0;
-}
-
-int Motor::calibrate_high() {
-    return 0;
 }

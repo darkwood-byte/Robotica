@@ -13,6 +13,9 @@
 #define CALIBRATE_FINISHED 0
 #define CALIBRATE_HEADING_HOME 1
 #define CALIBRATE_FINETUNING 2
+
+#define STEPERDRIVERPULSELENGHTUS 10
+
 class Motor {
 public:
     bool Ready;
@@ -23,6 +26,8 @@ public:
     void step_fall();   // <-- REQUIRED (ISR LOW pulse end)
 
 private:
+    volatile bool error;
+
     Sensor sensor_L;
     Sensor sensor_H;
 
@@ -38,7 +43,7 @@ private:
 
     void calculating_func();
     // -------------------- STEP CONTROL --------------------
-    bool pulse_active = false;
+    volatile bool pulse_active = false;
 
     void step();
   
@@ -48,13 +53,6 @@ private:
     // -------------------- TIMER / ALARM SYSTEM --------------------
     void init_alarm_system();
     void register_motor();
-
-    // -------------------- LOGIC --------------------
-    void check();
-    void prepare_for_calibration();
-    void init_calibration();
-    int calibrate_low();
-    int calibrate_high();
 };
 
 #endif
