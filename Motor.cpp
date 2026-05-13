@@ -127,6 +127,10 @@ void Motor::Use() {
     } else {
         Ready = false;
         if(calculating == CALC_FINISHED && calibrating == CALIBRATE_FINISHED){
+            if(sensor_H.Check() == PRESED || sensor_L.Check() == PRESED){
+                calibrating = CALIBRATE_HEADING_HOME;
+                return;
+            }
             if (delta < Goal) {step_high(); delta++;}
             else {step_low();delta--;}
             steps++;
@@ -154,7 +158,7 @@ void Motor::calculating_func(){
     if(calculating == CALC_RETURNING_TO_BASE){
         step_low();
         if(sensor_L.Check() == PRESED){
-            calculating ==  CALC_FINETUNING;
+            calculating =  CALC_FINETUNING;
         }
         if(sensor_H.Check() == PRESED){
             Sensor t;
@@ -179,7 +183,7 @@ void Motor::calculating_func(){
         step_high();
         max++;
         if(sensor_H.Check() == PRESED){
-            calculating == CALC_FINISHED;
+            calculating = CALC_FINISHED;
             delta = max;
         }
     }
@@ -203,7 +207,7 @@ void Motor::step() {
     if (pulse_active) return;
     pulse_active = true;
 
-    gpio_put(s_pin, 1);
+    gpio_put(s_pin, true);
 
     // bereken wanneer de pulse weer laag moet
     uint64_t t = time_us_64() + STEPERDRIVERPULSELENGHTUS;

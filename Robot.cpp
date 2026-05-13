@@ -8,7 +8,7 @@ inline bool Robot::timer_callback(struct repeating_timer *t) {
 void Robot::Wake_up(){
     if(robot_awake == false){
         add_repeating_timer_us(-500, timer_callback, this, &timer);
-        robot_awake == true;
+        robot_awake = true;
         Push_working();
     }
 }
