@@ -66,9 +66,13 @@ void Robot::Init() {
 
 // ------------------------------------------------------------------- Move ---
 
+
 void Robot::Move(int pan_goal, int tilt_goal) {
-    pan_motor.goal  = pan_goal;
-    tilt_motor.goal = tilt_goal;
+    int clamped = (pan_goal < PAN_MIN_DEGREES)? PAN_MIN_DEGREES : (pan_goal > PAN_MAX_DEGREES)? PAN_MAX_DEGREES: pan_goal;
+    pan_motor.goal = (pan_motor.GetRange() * clamped) / PAN_MAX_DEGREES;
+
+    int tilt_clamped = (tilt_goal < TILT_MIN_DEGREES)? TILT_MIN_DEGREES: (tilt_goal > TILT_MAX_DEGREES)? TILT_MAX_DEGREES: tilt_goal;
+    tilt_motor.goal = (tilt_motor.GetRange() * (tilt_clamped - TILT_MIN_DEGREES)) / (TILT_MAX_DEGREES - TILT_MIN_DEGREES);
 }
 
 bool Robot::IsReady() {

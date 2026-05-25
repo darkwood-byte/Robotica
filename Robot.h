@@ -5,7 +5,7 @@
 #include "Motor.h"
 #include "error.h"
 #include <stdio.h>
-
+// draden waren omgekeerd want 90 graden gerdaaid
 #define PAN_SENSOR_HIGH_AOF   7
 #define PAN_SENSOR_HIGH_AON   6
 #define PAN_SENSOR_LOW_AOF  9
@@ -21,7 +21,15 @@
 #define TILT_MOTOR_STEP  4
 #define TILT_MOTOR_DIR   5
 
-#define MOTOR_TICK_US 1200
+#define PAN_MAX_DEGREES 345
+#define PAN_MIN_DEGREES 0
+
+#define TILT_MAX_DEGREES 80
+#define TILT_MIN_DEGREES -30
+//400 steper pulses per seconde 
+#define TARGET_PULSE_RATE 400
+
+#define MOTOR_TICK_US (1000000 / (TARGET_PULSE_RATE * 2))
 
 class Robot {
 public:

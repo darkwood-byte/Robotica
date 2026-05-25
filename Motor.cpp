@@ -36,12 +36,6 @@ void Motor::Init(int dir_pin, int step_pin, Sensor low, Sensor high) {
     state  = &Motor::state_find_base;
 }
 
-void Motor::SetGoal(int g) {
-    if (range <= 2) return;
-    goal   = (g < 1) ? 1 : (g > range - 1) ? range - 1 : g;
-    status = Status::Running;
-}
-
 // ------------------------------------------------------------------ Tick ----
 void Motor::Tick() {
     if (pulse_active) {
