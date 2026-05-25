@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Build output filename now matches the project target name
 
-add_executable(Robotica Main.cpp Sensor.cpp Motor.cpp Robot.cpp)
+add_executable(Robotica Main.cpp Sensor.cpp Motor.cpp Robot.cpp SerialIRQHandler.cpp)
 
 pico_set_program_name(Robotica "Robotica")
 pico_set_program_version(Robotica "0.1")

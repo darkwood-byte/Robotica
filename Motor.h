@@ -3,56 +3,45 @@
 
 #include "pico/stdlib.h"
 #include "Sensor.h"
-#include "error.h"
 
-#define CALC_FINISHED 0
-#define CALC_RETURNING_TO_BASE 1
-#define CALC_FINETUNING 2
-#define CALC_COUNTING 3
-
-#define CALIBRATE_FINISHED 0
-#define CALIBRATE_HEADING_HOME 1
-#define CALIBRATE_FINETUNING 2
-
-#define STEPERDRIVERPULSELENGHTUS 10
+#define RECALIBRATE_AFTER_STEPS_FACTOR 2
+#define DEBOUNCE_THRESHOLD             4
 
 class Motor {
 public:
-    bool Ready;
-    int Goal;
+    enum class Status { Calibrating, Running, Ready, Error };
 
-    void Init(int dir_pin, int step_pin, Sensor sensor_low, Sensor sensor_high);
-    void Use();
-    void step_fall();   // <-- REQUIRED (ISR LOW pulse end)
+    volatile Status status = Status::Calibrating;
+    volatile int    goal   = 0;
+
+    void Init(int dir_pin, int step_pin, Sensor low, Sensor high);
+    void Tick();
+    void SetGoal(int g);
+    int  GetRange();
 
 private:
-    volatile bool error;
+    int  d_pin         = 0;
+    int  s_pin         = 0;
+    int  position      = 0;
+    int  range         = 0;
+    int  total_steps   = 0;
+    int  debounce_count = 0;
+    bool pulse_active  = false;
 
-    Sensor sensor_L;
-    Sensor sensor_H;
+    Sensor sensor_low;
+    Sensor sensor_high;
 
-    volatile int s_pin;
-    volatile int d_pin;
+    using State = void (Motor::*)();
+    State state = nullptr;
 
-    volatile int steps;
-    volatile int max;
-    volatile int delta;
+    void state_find_base();
+    void state_leave_base();
+    void state_measure_range();
+    void state_run();
 
-    volatile int calculating;
-    volatile int calibrating;
-
-    void calculating_func();
-    // -------------------- STEP CONTROL --------------------
-    volatile bool pulse_active = false;
-
-    void step();
-  
     void step_high();
     void step_low();
-
-    // -------------------- TIMER / ALARM SYSTEM --------------------
-    void init_alarm_system();
-    void register_motor();
+    void pulse();
 };
 
 #endif

@@ -1,19 +1,17 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
-#include <cstdint>
-
-#define ERROR -1
-#define OPEN 0
-#define PRESED 1
+#define SENSOR_ERROR  -1
+#define OPEN           0
+#define PRESSED        1
 
 class Sensor {
 public:
-    int Check();
-    void init();
+    int AON = 0;
+    int AOF = 0;
 
-    int AON;
-    int AOF;
+    void init();
+    int  Check();
 };
 
 #endif

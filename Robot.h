@@ -1,45 +1,46 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include "Motor.h"
 #include "pico/stdlib.h"
-#include "pico/util/queue.h"
+#include "Motor.h"
+#include "error.h"
+#include <stdio.h>
 
-// Sensor pin defines
-#define PANSENSORLOWAOF  6
-#define PANSENSORLOWAON  7
-#define PANSENSORHIGHAOF 8
-#define PANSENSORHIGHAON 9
+#define PAN_SENSOR_HIGH_AOF   7
+#define PAN_SENSOR_HIGH_AON   6
+#define PAN_SENSOR_LOW_AOF  9
+#define PAN_SENSOR_LOW_AON  8
 
-#define TILTSENSORLOWAOF  10
-#define TILTSENSORLOWAON  11
-#define TILTSENSORHIGHAOF 12
-#define TILTSENSORHIGHAON 13
+#define TILT_SENSOR_LOW_AOF  12
+#define TILT_SENSOR_LOW_AON  13
+#define TILT_SENSOR_HIGH_AOF 10
+#define TILT_SENSOR_HIGH_AON 11
 
-// Motor pin defines
-#define PANMOTORSTEP 2
-#define PANMOTORDIR 3 
+#define PAN_MOTOR_STEP   2
+#define PAN_MOTOR_DIR    3
+#define TILT_MOTOR_STEP  4
+#define TILT_MOTOR_DIR   5
 
-#define TILTMOTORSTEP 4
-#define TILTMOTORDIR 5
+#define MOTOR_TICK_US 1200
 
 class Robot {
 public:
-    volatile int Pan = 0;
-    volatile int Tilt = 0;
+    void  Init();
+    void  Move(int pan_goal, int tilt_goal);
+    bool  IsReady();
 
-    Robot() = default;
-    void Init();
-    void Wake_up();//aaaaaaaaaaaaaaaaaaaaa
+    const Motor& GetPanMotor()  const;
+    const Motor& GetTiltMotor() const;
+
 private:
-    volatile bool robot_awake = false;
-    struct repeating_timer timer; // heartbeat timer
     Motor pan_motor;
     Motor tilt_motor;
 
-    // Timer callback wrapper
-    static inline bool timer_callback(struct repeating_timer *t);
+    struct repeating_timer timer;
+
+    static bool timer_callback(struct repeating_timer *t);
     bool on_timer();
+    void update_leds();
 };
 
-#endif // ROBOT_H
+#endif
