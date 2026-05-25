@@ -13,10 +13,11 @@ private:
 
     static Robot* robot_instance;
     static char cmd_buffer[BUFFER_SIZE];
-    static int cmd_index;
+    static volatile int cmd_index;
 
     static void on_uart_rx(void* param);
     static void parse_and_execute();
+    static bool parse(const char* buf, int& a, int& b);
 };
 
 #endif // SERIAL_IRQ_HANDLER_H

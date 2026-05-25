@@ -7,10 +7,13 @@
 int main() {
     stdio_init_all();
     printf("hello world\n");
-    Robot* telescope = new Robot();
-    telescope->Init();
-    SerialIRQHandler* serial = new SerialIRQHandler();
-    serial->Init(telescope);
+
+    Robot telescope;
+    telescope.Init();
+
+    SerialIRQHandler serial;
+    serial.Init(&telescope);
+
     printf("Ready\n");
     while (true) {
         __wfi();

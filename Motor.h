@@ -7,6 +7,8 @@
 #define RECALIBRATE_AFTER_STEPS_FACTOR 2
 #define DEBOUNCE_THRESHOLD             4
 
+#define RANGE_NOT_DEFINED -1
+
 class Motor {
 public:
     enum class Status { Calibrating, Running, Ready, Error };
@@ -22,11 +24,11 @@ public:
 private:
     int  d_pin         = 0;
     int  s_pin         = 0;
-    int  position      = 0;
-    int  range         = 0;
-    int  total_steps   = 0;
-    int  debounce_count = 0;
-    bool pulse_active  = false;
+    volatile int  position      = 0;
+    volatile int  range         = 0;
+    volatile int  total_steps   = 0;
+    volatile int  debounce_count = 0;
+    volatile bool pulse_active  = false;
 
     Sensor sensor_low;
     Sensor sensor_high;

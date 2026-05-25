@@ -20,7 +20,7 @@ void Motor::Init(int dir_pin, int step_pin, Sensor low, Sensor high) {
     gpio_init(s_pin); gpio_set_dir(s_pin, GPIO_OUT);
 
     position       = 0;
-    range          = 0;
+    range          = RANGE_NOT_DEFINED ;
     total_steps    = 0;
     debounce_count = 0;
     pulse_active   = false;
@@ -98,7 +98,6 @@ void Motor::state_run() {
     if (position < goal) {
         if (sensor_high.Check() == PRESSED) {
             position = range;
-            goal     = range - 1;
             status   = Status::Running;
             return;
         }
@@ -107,7 +106,6 @@ void Motor::state_run() {
     } else {
         if (sensor_low.Check() == PRESSED) {
             position = 0;
-            goal     = 1;
             status   = Status::Running;
             return;
         }

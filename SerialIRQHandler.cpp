@@ -5,12 +5,36 @@
 
 Robot* SerialIRQHandler::robot_instance = nullptr;
 char SerialIRQHandler::cmd_buffer[BUFFER_SIZE] = {0};
-int SerialIRQHandler::cmd_index = 0;
+volatile int SerialIRQHandler::cmd_index = 0;
 
 void SerialIRQHandler::Init(Robot* robot) {
     robot_instance = robot;
     cmd_index = 0;
     stdio_set_chars_available_callback(on_uart_rx, nullptr);
+}
+
+bool SerialIRQHandler::parse(const char* buf, int& a, int& b) {
+    const char* p = buf;
+
+    bool neg = false;
+    if (*p == '-') { neg = true; p++; }
+    if (*p < '0' || *p > '9') return false;
+
+    int val = 0;
+    while (*p >= '0' && *p <= '9') val = val * 10 + (*p++ - '0');
+    a = neg ? -val : val;
+
+    if (*p++ != ':') return false;
+
+    neg = false;
+    if (*p == '-') { neg = true; p++; }
+    if (*p < '0' || *p > '9') return false;
+
+    val = 0;
+    while (*p >= '0' && *p <= '9') val = val * 10 + (*p++ - '0');
+    b = neg ? -val : val;
+
+    return (*p == '\0');
 }
 
 void SerialIRQHandler::on_uart_rx(void* param) {
@@ -48,14 +72,9 @@ void SerialIRQHandler::on_uart_rx(void* param) {
 }
 
 void SerialIRQHandler::parse_and_execute() {
-    int pan = 0;
-    int tilt = 0;
-
-    // sscanf is sneller, veiliger en korter binnen een ISR dan strchr + atoi
-    if (sscanf(cmd_buffer, "%d:%d", &pan, &tilt) == 2) {
-        if (robot_instance) {
-            robot_instance->Move(pan, tilt);
-        }
+    int pan = 0, tilt = 0;
+    if (parse(cmd_buffer, pan, tilt)) {
+        if (robot_instance) robot_instance->Move(pan, tilt);
     } else {
         uart_puts(uart0, "\n[Error] Invalid format\n");
     }
