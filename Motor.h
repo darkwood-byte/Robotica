@@ -5,7 +5,7 @@
 #include "Sensor.h"
 
 #define RECALIBRATE_AFTER_STEPS_FACTOR 2
-#define DEBOUNCE_THRESHOLD             4
+#define DEBOUNCE_THRESHOLD             40
 
 #define RANGE_NOT_DEFINED -1
 
@@ -18,7 +18,7 @@ public:
 
     void Init(int dir_pin, int step_pin, Sensor low, Sensor high);
     void Tick();
-    void SetGoal(int g);
+    
     int  GetRange();
 
 private:
@@ -40,6 +40,7 @@ private:
     void state_leave_base();
     void state_measure_range();
     void state_run();
+    void state_leave_base_after_calc();
 
     void step_high();
     void step_low();

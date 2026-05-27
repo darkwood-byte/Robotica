@@ -21,15 +21,15 @@
 #define TILT_MOTOR_STEP  4
 #define TILT_MOTOR_DIR   5
 
-#define PAN_MAX_DEGREES 345
+#define PAN_MAX_DEGREES 335
 #define PAN_MIN_DEGREES 0
 
-#define TILT_MAX_DEGREES 80
-#define TILT_MIN_DEGREES -30
-//400 steper pulses per seconde 
-#define TARGET_PULSE_RATE 400
+#define TILT_MAX_DEGREES 72
+#define TILT_MIN_DEGREES -58
 
-#define MOTOR_TICK_US (1000000 / (TARGET_PULSE_RATE * 2))
+#define TARGET_PULSE_RATE 900
+
+#define MOTOR_TICK_US (1000000 / (TARGET_PULSE_RATE * 2))//tijd tussen timer intrupt = 1 seconde / target * 2 omdat 1e pulse uitzeten is
 
 class Robot {
 public:

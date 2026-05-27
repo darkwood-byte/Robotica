@@ -79,12 +79,25 @@ void Motor::state_measure_range() {
     if (sensor_high.Check() == PRESSED) {
         range       = position;
         total_steps = 0;
-        status      = Status::Running;
-        state       = &Motor::state_run;
+        status      = Status::Calibrating;
+        state       = &Motor::state_leave_base_after_calc;
         return;
     }
     step_high();
     position++;
+}
+
+void Motor::state_leave_base_after_calc() {
+    if (sensor_high.Check() == OPEN) {
+        if (++debounce_count >= DEBOUNCE_THRESHOLD) {
+            debounce_count = 0;
+            status      = Status::Running;
+            state          = &Motor::state_run;
+        }
+        return;
+    }
+    debounce_count = 0;
+    step_low();
 }
 
 void Motor::state_run() {
